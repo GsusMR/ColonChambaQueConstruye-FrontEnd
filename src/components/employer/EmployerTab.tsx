@@ -9,14 +9,14 @@ export default function EmployerTab() {
   const tabsConfig = [
     {
         value:"documents",
-        route:"/employer/home/company",
+        route:"/employer/profileconfig/company",
         title: 'Documents',
         icon: <Buildings size={24} />,
         label:"Información de la empresa"
     },
     {
         value:"profile",
-        route:"/employer/home/",
+        route:"/employer/profileconfig",
         title: 'Profile',
         icon: <UserCircle size={24} />,
         label:"Datos de acceso"
@@ -24,9 +24,9 @@ export default function EmployerTab() {
   ]; 
 
     return (
-        <div className="mx-auto max-w-md bg-white text-brand">{/*Introducir la información de la empresa*/}
+        <div className="mx-auto max-w-md bg-white text-brand overflow-hidden">{/*Introducir la información de la empresa*/}
             <InfoCard 
-                avatar="<img src='public/Deloitte.svg' alt='Deloitte QRO' />"
+                avatar="<img src='public/Deloitte.svg' />"
                 name="Deloitte QRO"
                 email="contacto.qro@deloitte.com"
                 cellphone=""

@@ -16,7 +16,7 @@ export type ConfigRowProps = {
   onValueChange?: (v: string) => void;
   inputType?: React.HTMLInputTypeAttribute;
   rules?: any;
-  externalError?: string; // nuevo: error desde el padre para modo no-RHF
+  externalError?: string;
 };
 
 export function ConfigRow({
@@ -36,49 +36,48 @@ export function ConfigRow({
   const methods = useFormContext();
   const inFormContext = Boolean(methods && name);
 
-  const watchedValue = inFormContext && methods ? methods.watch(name as any) : undefined;
+  const watchedValue = inFormContext ? methods.watch(name as any) : undefined;
   const displayValue = typeof watchedValue !== 'undefined' ? watchedValue : valueinput ?? '';
 
   const isPasswordField = inputType === 'password' || name === 'password';
   const maskedValue = isPasswordField ? '*************' : displayValue;
 
-  // error desde RHF si existe
   const fieldError =
-    inFormContext && methods && name ? ((methods.formState.errors as any)[name as string]?.message as string | undefined) : undefined;
+    inFormContext && name ? ((methods.formState.errors as any)[name]?.message as string | undefined) : undefined;
 
-  // fallback error state when NOT using RHF (non-context editing)
   const [localError, setLocalError] = useState<string | null>(null);
 
-  // default rules to avoid empty / only-spaces values when editing
-  const defaultRules =
-    editInput
-      ? {
-          required: 'No puede quedar vacío',
-          validate: (v: any) => (typeof v === 'string' ? v.trim() !== '' : !!v) || 'No puede quedar vacío',
-          ...(inputType === 'tel' || name === 'phone' ? { pattern: { value: /^\d+$/, message: 'Solo se permiten números' } } : {}),
-        }
-      : undefined;
+  const defaultRules = editInput
+    ? {
+        required: 'No puede quedar vacío',
+        validate: (v: any) =>
+          typeof v === 'string' ? v.trim() !== '' : !!v || 'No puede quedar vacío',
+        ...(inputType === 'tel' || name === 'phone'
+          ? { pattern: { value: /^\d+$/, message: 'Solo se permiten números' } }
+          : {}),
+      }
+    : undefined;
 
   const appliedRules = rules ?? defaultRules;
-
-  // mostrar error prioritariamente: RHF fieldError -> externalError -> localError
   const shownError = fieldError ?? externalError ?? localError ?? undefined;
 
   return (
     <div
-      className={`flex w-full items-center ${isTitle ? 'px-6' : 'px-4'} border-b border-zinc-100 ${isTitle && isEditable ? 'bg-zinc-50' : isTitle ? 'bg-zinc-50 py-4' : ''}`}
+      className={`flex w-full items-center ${isTitle ? 'px-6' : 'px-4'} border-b border-zinc-100 ${
+        isTitle ? 'bg-zinc-50 py-4' : ''
+      }`}
     >
       {isTitle ? (
         <>
-          <h3 className="flex-1 text-[16px] font-[800]">{title}</h3>
+          <h3 className="flex-1 text-[16px] font-bold truncate">{title}</h3>
         </>
       ) : (
         <div className="flex min-w-0 flex-1 flex-col">
-          <div className="flex items-center min-w-0">
-            <p className="min-w-[150px] py-3">{title}</p>
-            <div className="flex-1">
+          <div className="flex items-center min-w-0 w-full gap-2">
+            <p className="w-full max-w-[150px] py-3 text-sm font-medium truncate shrink-0">{title}</p>
+            <div className="flex-1 min-w-0">
               {editInput ? (
-                inFormContext && methods && name ? (
+                inFormContext && name ? (
                   <Controller
                     control={methods.control}
                     name={name as any}
@@ -91,12 +90,12 @@ export function ConfigRow({
                         value={field.value ?? ''}
                         onChange={(e) => {
                           field.onChange(e.target.value);
-                          if (methods.formState.errors && (methods.formState.errors as any)[name as string]) {
+                          if ((methods.formState.errors as any)[name]) {
                             methods.clearErrors(name as any);
                           }
                         }}
                         onBlur={(e) => {
-                          const trimmed = (e.target.value ?? '').trim();
+                          const trimmed = e.target.value.trim();
                           if (trimmed !== field.value) {
                             field.onChange(trimmed);
                           }
@@ -119,7 +118,6 @@ export function ConfigRow({
                         const trimmed = e.target.value.trim();
                         if (trimmed === '') {
                           setLocalError('No puede quedar vacío');
-                          // no propagar valor vacío
                         } else {
                           if (trimmed !== displayValue) onValueChange?.(trimmed);
                           setLocalError(null);
@@ -127,20 +125,21 @@ export function ConfigRow({
                       }}
                       type={inputType ?? 'text'}
                     />
-                    {/* mostrar error local o externo */}
-                    {(externalError || localError) && <p className="mt-1 text-sm text-red-600">{externalError ?? localError}</p>}
+                    {(externalError || localError) && (
+                      <p className="mt-1 text-sm text-red-600">{externalError ?? localError}</p>
+                    )}
                   </>
                 )
               ) : (
-                <div className="text-sm text-zinc-600 truncate">{isPasswordField ? maskedValue : displayValue}</div>
+                <div className="text-sm text-zinc-600 whitespace-normal break-words w-full">
+                  {isPasswordField ? maskedValue : displayValue}
+                </div>
               )}
             </div>
           </div>
 
           {fieldError && (
-            <p className="mt-1 text-sm text-red-600 pl-[150px]">
-              {fieldError}
-            </p>
+            <p className="mt-1 text-sm text-red-600 ml-[158px]">{fieldError}</p>
           )}
         </div>
       )}
